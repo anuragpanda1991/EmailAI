@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EmailAI — AI Email Writer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14171f;
+    --paper:#faf7f0;
+    --card:#ffffff;
+    --accent:#c1443c;
+    --accent-dark:#9a332c;
+    --slate:#6b7280;
+    --line:#e4ded0;
+    --text:#1a1a1a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:48px 20px;
+  }
+  .wrap{
+    width:100%;
+    max-width:640px;
+  }
+  header{
+    color:var(--paper);
+    margin-bottom:28px;
+  }
+  header .mark{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Source Serif 4',serif;
+    font-weight:700;
+    font-size:28px;
+  }
+  header .mark svg{flex-shrink:0;}
+  header p{
+    margin:8px 0 0;
+    color:#9aa0ad;
+    font-size:14.5px;
+    max-width:46ch;
+  }
+  .card{
+    background:var(--paper);
+    border-radius:6px;
+    padding:32px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+  }
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--slate);
+    margin-bottom:6px;
+  }
+  .field{margin-bottom:20px;}
+  textarea, select, input[type=password]{
+    width:100%;
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    padding:12px 14px;
+    border:1.5px solid var(--line);
+    border-radius:4px;
+    background:var(--card);
+    color:var(--text);
+    resize:vertical;
+  }
+  textarea{min-height:88px; line-height:1.5;}
+  textarea:focus, select:focus, input:focus{
+    outline:none;
+    border-color:var(--accent);
+  }
+  .row{display:flex; gap:14px;}
+  .row .field{flex:1;}
+  button{
+    width:100%;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    padding:14px 18px;
+    border-radius:4px;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  button:hover{background:var(--accent-dark);}
+  button:disabled{background:#c8c2b3; cursor:not-allowed;}
+  .divider{
+    border:none;
+    border-top:1px solid var(--line);
+    margin:26px 0;
+  }
+  .output{
+    display:none;
+  }
+  .output.visible{display:block;}
+  .output h2{
+    font-family:'Source Serif 4',serif;
+    font-size:16px;
+    margin:0 0 10px;
+    color:var(--text);
+  }
+  .letter{
+    background:var(--card);
+    border:1.5px solid var(--line);
+    border-radius:4px;
+    padding:20px;
+    font-family:'Source Serif 4',serif;
+    font-size:15.5px;
+    line-height:1.7;
+    white-space:pre-wrap;
+    color:var(--text);
+  }
+  .actions{
+    display:flex;
+    gap:10px;
+    margin-top:14px;
+  }
+  .actions button{
+    width:auto;
+    flex:1;
+    background:var(--card);
+    color:var(--text);
+    border:1.5px solid var(--line);
+    font-weight:500;
+  }
+  .actions button:hover{background:#f2ede0;}
+  .status{
+    font-size:13.5px;
+    color:var(--slate);
+    margin-top:10px;
+    min-height:18px;
+  }
+  .status.error{color:var(--accent-dark);}
+  .keynote{
+    font-size:12.5px;
+    color:#9aa0ad;
+    margin-top:18px;
+    line-height:1.5;
+  }
+  footer{
+    text-align:center;
+    color:#616774;
+    font-size:12.5px;
+    margin-top:26px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <path d="M3 6.5L12 13L21 6.5" stroke="#c1443c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="3" y="5" width="18" height="14" rx="1.5" stroke="#faf7f0" stroke-width="1.8"/>
+      </svg>
+      EmailAI
+    </div>
+    <p>Say what you need to say, pick a tone, and get a ready-to-send email — no staring at a blank draft.</p>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label for="apiKey">Gemini API key</label>
+      <input type="password" id="apiKey" placeholder="AIza..." autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label for="intent">What's the email about?</label>
+      <textarea id="intent" placeholder="e.g. Asking my manager for two days off next week for a family event"></textarea>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="tone">Tone</label>
+        <select id="tone">
+          <option value="friendly">Friendly</option>
+          <option value="formal">Formal</option>
+          <option value="direct" selected>Direct</option>
+          <option value="apologetic">Apologetic</option>
+          <option value="persuasive">Persuasive</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="length">Length</label>
+        <select id="length">
+          <option value="short">Short</option>
+          <option value="medium" selected>Medium</option>
+          <option value="long">Detailed</option>
+        </select>
+      </div>
+    </div>
+
+    <button id="generateBtn">Write the email</button>
+    <div class="status" id="status"></div>
+
+    <div class="output" id="output">
+      <hr class="divider">
+      <h2>Your draft</h2>
+      <div class="letter" id="letter"></div>
+      <div class="actions">
+        <button id="copyBtn">Copy text</button>
+        <button id="regenBtn">Try again</button>
+      </div>
+    </div>
+
+    <p class="keynote">Your API key is used only in your browser to call Google's Gemini API directly — it's never sent anywhere else and isn't stored once you close this page.</p>
+  </div>
+
+  <footer>EmailAI · built for the GenAI &amp; Prompt Engineering project</footer>
+</div>
+
+<script>
+const generateBtn = document.getElementById('generateBtn');
+const regenBtn = document.getElementById('regenBtn');
+const copyBtn = document.getElementById('copyBtn');
+const statusEl = document.getElementById('status');
+const outputEl = document.getElementById('output');
+const letterEl = document.getElementById('letter');
+
+async function generateEmail(){
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const intent = document.getElementById('intent').value.trim();
+  const tone = document.getElementById('tone').value;
+  const length = document.getElementById('length').value;
+
+  statusEl.className = 'status';
+  statusEl.textContent = '';
+
+  if(!apiKey){
+    statusEl.className = 'status error';
+    statusEl.textContent = 'Add your Gemini API key first.';
+    return;
+  }
+  if(!intent){
+    statusEl.className = 'status error';
+    statusEl.textContent = 'Tell MailPilot what the email should say.';
+    return;
+  }
+
+  generateBtn.disabled = true;
+  generateBtn.textContent = 'Writing…';
+  statusEl.textContent = 'Generating your draft…';
+
+  const lengthMap = {
+    short: 'Keep it under 80 words.',
+    medium: 'Keep it to a natural, medium length — a few short paragraphs.',
+    long: 'Write a fuller, more detailed email covering the context clearly.'
+  };
+
+  const systemPrompt = `You are an assistant that writes complete, ready-to-send emails. Write in a ${tone} tone. ${lengthMap[length]} Include a subject line on the first line as "Subject: ..." followed by a blank line, then the email body with a greeting and sign-off. Do not add any commentary outside the email itself.`;
+
+  try{
+    const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent';
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+      },
+      body: JSON.stringify({
+        system_instruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        contents: [
+          { role: 'user', parts: [{ text: intent }] }
+        ],
+        generationConfig: { temperature: 0.7 }
+      })
+    });
+
+    if(!response.ok){
+      const errData = await response.json().catch(()=>({}));
+      throw new Error(errData?.error?.message || ('Request failed with status ' + response.status));
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'No response received.';
+
+    letterEl.textContent = text;
+    outputEl.classList.add('visible');
+    statusEl.textContent = '';
+  }catch(err){
+    statusEl.className = 'status error';
+    statusEl.textContent = 'Something went wrong: ' + err.message;
+  }finally{
+    generateBtn.disabled = false;
+    generateBtn.textContent = 'Write the email';
+  }
+}
+
+generateBtn.addEventListener('click', generateEmail);
+regenBtn.addEventListener('click', generateEmail);
+
+copyBtn.addEventListener('click', async () => {
+  try{
+    await navigator.clipboard.writeText(letterEl.textContent);
+    copyBtn.textContent = 'Copied!';
+    setTimeout(()=> copyBtn.textContent = 'Copy text', 1500);
+  }catch(e){
+    statusEl.className = 'status error';
+    statusEl.textContent = 'Could not copy — select the text manually.';
+  }
+});
+</script>
+</body>
+</html>
